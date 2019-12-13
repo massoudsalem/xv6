@@ -74,6 +74,7 @@ void            kbdintr(void);
 
 // lapic.c
 void            cmostime(struct rtcdate *r);
+unsigned long   unixtime(void);
 int             lapicid(void);
 extern volatile uint*    lapic;
 void            lapiceoi(void);
@@ -120,6 +121,8 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+int             gettime(void);
+int             settickets(int);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

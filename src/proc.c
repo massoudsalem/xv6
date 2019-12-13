@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "rand.h"
 
 struct {
   struct spinlock lock;
@@ -24,6 +25,8 @@ void
 pinit(void)
 {
   initlock(&ptable.lock, "ptable");
+  // Seed RNG with current time
+  sgenrand(unixtime());
 }
 
 // Must be called with interrupts disabled
@@ -88,7 +91,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-
+  p->tickets = 10;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -311,6 +314,21 @@ wait(void)
   }
 }
 
+int
+lottery_total(void){
+  struct proc *p;
+  int ticket_aggregate=0;
+
+//loop over process table and increment total tickets if a runnable process is found 
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->state==RUNNABLE){
+      ticket_aggregate+=p->tickets;
+    }
+  }
+  return ticket_aggregate;          // returning total number of tickets for runnable processes
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -324,18 +342,49 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+  long total_tickets = 0;
+  long counter = 0;
+  long winner = 0;
+
+  int got_total = 0; // 0 is False, 1 is True
+  int winner_found = 0;
   c->proc = 0;
   
   for(;;){
     // Enable interrupts on this processor.
     sti();
-
+    if (got_total == 1) {
+         winner = random_at_most(total_tickets);
+         total_tickets = 0;
+         counter = 0;
+         winner_found = 0;
+    }
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+      if(p->state != RUNNABLE) {
+            continue;
+      }
+      // Or first time running the loop. Must find total tickets
+      // Continue to prevent process from being ran because it's not fair
+      if (got_total == 0) {
+            total_tickets += p->tickets;
+            continue;
+      }
 
+      counter += p->tickets;
+
+      if (counter < winner) {
+            // Runnable but not winner. State doesn't change. Tickets valid for next round
+            total_tickets += p->tickets;
+            continue;
+      }
+
+      if (winner_found) {
+            total_tickets += p->tickets;
+            continue;
+      }
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -348,10 +397,18 @@ scheduler(void)
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
+      //If it's still runnable, it it should be added to total tickets
+      if (p->state == RUNNABLE) {
+            total_tickets += p->tickets;
+
+      winner_found = 1;
+
+      }
       c->proc = 0;
+      break;
     }
     release(&ptable.lock);
-
+    got_total = 1;
   }
 }
 
@@ -523,12 +580,15 @@ procdump(void)
       state = states[p->state];
     else
       state = "???";
-    cprintf("%d %s %s", p->pid, state, p->name);
+    cprintf("%d %s %sc%d", p->pid, state, p->name, p->tickets);
     if(p->state == SLEEPING){
       getcallerpcs((uint*)p->context->ebp+2, pc);
       for(i=0; i<10 && pc[i] != 0; i++)
         cprintf(" %p", pc[i]);
     }
+    // cprintf(" %d", p->tickets);
+    // cprintf(" %d", winning_ticket);
+    // cprintf(" %d", total_tickets);
     cprintf("\n");
   }
 }
