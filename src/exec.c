@@ -16,11 +16,10 @@ exec(char *path, char **argv)
   struct elfhdr elf;
   struct inode *ip;
   struct proghdr ph;
-  pde_t *pgdir, *oldpgdir;
   struct proc *curproc = myproc();
-
+  pde_t *pgdir, *oldpgdir;
+  
   begin_op();
-
   if((ip = namei(path)) == 0){
     end_op();
     cprintf("exec: fail\n");
@@ -47,7 +46,8 @@ exec(char *path, char **argv)
       continue;
     if(ph.memsz < ph.filesz)
       goto bad;
-    if(ph.vaddr + ph.memsz < ph.vaddr)
+   cprintf("pid %d %d %d ",curproc->pid, sz, ph.vaddr + ph.memsz ); 
+   if(ph.vaddr + ph.memsz < ph.vaddr)
       goto bad;
     if((sz = allocuvm(pgdir, sz, ph.vaddr + ph.memsz)) == 0)
       goto bad;
