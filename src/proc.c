@@ -91,7 +91,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  p->tickets = 10;
+  p->tickets = 1;
   p->ticks = 0;
 
   release(&ptable.lock);
@@ -201,6 +201,7 @@ fork(void)
     np->state = UNUSED;
     return -1;
   }
+  np->tickets = curproc->tickets;
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
@@ -369,8 +370,6 @@ scheduler(void)
       counter += p->tickets;
 
       if (counter < winner) {
-            // Runnable but not winner. State doesn't change. Tickets valid for next round
-            counter += p->tickets;
             continue;
       }
 
@@ -385,12 +384,6 @@ scheduler(void)
       switchkvm();
       p->ticks += 1;
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      //If it's still runnable, it it should be added to total tickets
-      if (p->state == RUNNABLE) {
-            total_tickets += p->tickets;
-      }
       c->proc = 0;
       break;
     }
@@ -541,9 +534,14 @@ kill(int pid)
 
 int 
 settickets(int tickets){
+  if(tickets < 1)
+    return -1;
   struct proc *proc = myproc();
   proc->tickets = tickets;
-  cprintf("tickets is %d", proc->tickets);
+  acquire(&ptable.lock);
+  ptable.proc[proc-ptable.proc].tickets = tickets;
+  release(&ptable.lock);
+  //cprintf("tickets is %d", proc->tickets);
   return 0;
 }
 
