@@ -348,30 +348,21 @@ scheduler(void)
   long counter = 0;
   long winner = 0;
 
-  int got_total = 0; // 0 is False, 1 is True
-  int winner_found = 0;
   c->proc = 0;
   
   for(;;){
     // Enable interrupts on this processor.
     sti();
-    if (got_total == 1) {
-         winner = random_at_most(total_tickets);
-         total_tickets = 0;
-         counter = 0;
-         winner_found = 0;
-    }
+    
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    total_tickets = lottery_total();
+    winner = random_at_most(total_tickets);
+    //total_tickets = 0;
+    counter = 0;
     
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE) {
-            continue;
-      }
-      // Or first time running the loop. Must find total tickets
-      // Continue to prevent process from being ran because it's not fair
-      if (got_total == 0) {
-            total_tickets += p->tickets;
             continue;
       }
 
@@ -379,38 +370,31 @@ scheduler(void)
 
       if (counter < winner) {
             // Runnable but not winner. State doesn't change. Tickets valid for next round
-            total_tickets += p->tickets;
+            counter += p->tickets;
             continue;
       }
 
-      if (winner_found) {
-            total_tickets += p->tickets;
-            continue;
-      }
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
-      p->ticks += 1;
+      
       swtch(&(c->scheduler), p->context);
       switchkvm();
+      p->ticks += 1;
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       //If it's still runnable, it it should be added to total tickets
       if (p->state == RUNNABLE) {
             total_tickets += p->tickets;
-
-      winner_found = 1;
       }
       c->proc = 0;
       break;
     }
     release(&ptable.lock);
-    got_total = 1;
   }
 }
 
@@ -559,6 +543,7 @@ int
 settickets(int tickets){
   struct proc *proc = myproc();
   proc->tickets = tickets;
+  cprintf("tickets is %d", proc->tickets);
   return 0;
 }
 
