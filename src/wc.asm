@@ -5,12 +5,6 @@ _wc:     file format elf32-i386
 Disassembly of section .text:
 
 00000000 <main>:
-  printf(1, "%d %d %d %s\n", l, w, c, name);
-}
-
-int
-main(int argc, char *argv[])
-{
    0:	8d 4c 24 04          	lea    0x4(%esp),%ecx
    4:	83 e4 f0             	and    $0xfffffff0,%esp
    7:	ff 71 fc             	pushl  -0x4(%ecx)
@@ -25,21 +19,10 @@ main(int argc, char *argv[])
   19:	8b 01                	mov    (%ecx),%eax
   1b:	8b 59 04             	mov    0x4(%ecx),%ebx
   1e:	83 c3 04             	add    $0x4,%ebx
-  int fd, i;
-
-  if(argc <= 1){
   21:	83 f8 01             	cmp    $0x1,%eax
-{
   24:	89 45 e4             	mov    %eax,-0x1c(%ebp)
-  if(argc <= 1){
   27:	7e 56                	jle    7f <main+0x7f>
   29:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
-    wc(0, "");
-    exit();
-  }
-
-  for(i = 1; i < argc; i++){
-    if((fd = open(argv[i], 0)) < 0){
   30:	83 ec 08             	sub    $0x8,%esp
   33:	6a 00                	push   $0x0
   35:	ff 33                	pushl  (%ebx)
@@ -48,43 +31,29 @@ main(int argc, char *argv[])
   3f:	85 c0                	test   %eax,%eax
   41:	89 c7                	mov    %eax,%edi
   43:	78 26                	js     6b <main+0x6b>
-      printf(1, "wc: cannot open %s\n", argv[i]);
-      exit();
-    }
-    wc(fd, argv[i]);
   45:	83 ec 08             	sub    $0x8,%esp
   48:	ff 33                	pushl  (%ebx)
-  for(i = 1; i < argc; i++){
   4a:	83 c6 01             	add    $0x1,%esi
-    wc(fd, argv[i]);
   4d:	50                   	push   %eax
   4e:	83 c3 04             	add    $0x4,%ebx
   51:	e8 4a 00 00 00       	call   a0 <wc>
-    close(fd);
   56:	89 3c 24             	mov    %edi,(%esp)
   59:	e8 9c 03 00 00       	call   3fa <close>
-  for(i = 1; i < argc; i++){
   5e:	83 c4 10             	add    $0x10,%esp
   61:	39 75 e4             	cmp    %esi,-0x1c(%ebp)
   64:	75 ca                	jne    30 <main+0x30>
-  }
-  exit();
   66:	e8 67 03 00 00       	call   3d2 <exit>
-      printf(1, "wc: cannot open %s\n", argv[i]);
   6b:	50                   	push   %eax
   6c:	ff 33                	pushl  (%ebx)
   6e:	68 db 08 00 00       	push   $0x8db
   73:	6a 01                	push   $0x1
   75:	e8 c6 04 00 00       	call   540 <printf>
-      exit();
   7a:	e8 53 03 00 00       	call   3d2 <exit>
-    wc(0, "");
   7f:	52                   	push   %edx
   80:	52                   	push   %edx
   81:	68 cd 08 00 00       	push   $0x8cd
   86:	6a 00                	push   $0x0
   88:	e8 13 00 00 00       	call   a0 <wc>
-    exit();
   8d:	e8 40 03 00 00       	call   3d2 <exit>
   92:	66 90                	xchg   %ax,%ax
   94:	66 90                	xchg   %ax,%ax
@@ -95,22 +64,16 @@ main(int argc, char *argv[])
   9e:	66 90                	xchg   %ax,%ax
 
 000000a0 <wc>:
-{
   a0:	55                   	push   %ebp
   a1:	89 e5                	mov    %esp,%ebp
   a3:	57                   	push   %edi
   a4:	56                   	push   %esi
   a5:	53                   	push   %ebx
-  l = w = c = 0;
   a6:	31 db                	xor    %ebx,%ebx
-{
   a8:	83 ec 1c             	sub    $0x1c,%esp
-  inword = 0;
   ab:	c7 45 e4 00 00 00 00 	movl   $0x0,-0x1c(%ebp)
-  l = w = c = 0;
   b2:	c7 45 e0 00 00 00 00 	movl   $0x0,-0x20(%ebp)
   b9:	c7 45 dc 00 00 00 00 	movl   $0x0,-0x24(%ebp)
-  while((n = read(fd, buf, sizeof(buf))) > 0){
   c0:	83 ec 04             	sub    $0x4,%esp
   c3:	68 00 02 00 00       	push   $0x200
   c8:	68 00 0c 00 00       	push   $0xc00
@@ -120,54 +83,39 @@ main(int argc, char *argv[])
   d8:	83 f8 00             	cmp    $0x0,%eax
   db:	89 c6                	mov    %eax,%esi
   dd:	7e 61                	jle    140 <wc+0xa0>
-    for(i=0; i<n; i++){
   df:	31 ff                	xor    %edi,%edi
   e1:	eb 13                	jmp    f6 <wc+0x56>
   e3:	90                   	nop
   e4:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
-        inword = 0;
   e8:	c7 45 e4 00 00 00 00 	movl   $0x0,-0x1c(%ebp)
-    for(i=0; i<n; i++){
   ef:	83 c7 01             	add    $0x1,%edi
   f2:	39 fe                	cmp    %edi,%esi
   f4:	74 42                	je     138 <wc+0x98>
-      if(buf[i] == '\n')
   f6:	0f be 87 00 0c 00 00 	movsbl 0xc00(%edi),%eax
-        l++;
   fd:	31 c9                	xor    %ecx,%ecx
   ff:	3c 0a                	cmp    $0xa,%al
  101:	0f 94 c1             	sete   %cl
-      if(strchr(" \r\t\n\v", buf[i]))
  104:	83 ec 08             	sub    $0x8,%esp
  107:	50                   	push   %eax
  108:	68 b8 08 00 00       	push   $0x8b8
-        l++;
  10d:	01 cb                	add    %ecx,%ebx
-      if(strchr(" \r\t\n\v", buf[i]))
  10f:	e8 3c 01 00 00       	call   250 <strchr>
  114:	83 c4 10             	add    $0x10,%esp
  117:	85 c0                	test   %eax,%eax
  119:	75 cd                	jne    e8 <wc+0x48>
-      else if(!inword){
  11b:	8b 55 e4             	mov    -0x1c(%ebp),%edx
  11e:	85 d2                	test   %edx,%edx
  120:	75 cd                	jne    ef <wc+0x4f>
-    for(i=0; i<n; i++){
  122:	83 c7 01             	add    $0x1,%edi
-        w++;
  125:	83 45 dc 01          	addl   $0x1,-0x24(%ebp)
-        inword = 1;
  129:	c7 45 e4 01 00 00 00 	movl   $0x1,-0x1c(%ebp)
-    for(i=0; i<n; i++){
  130:	39 fe                	cmp    %edi,%esi
  132:	75 c2                	jne    f6 <wc+0x56>
  134:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
  138:	01 75 e0             	add    %esi,-0x20(%ebp)
  13b:	eb 83                	jmp    c0 <wc+0x20>
  13d:	8d 76 00             	lea    0x0(%esi),%esi
-  if(n < 0){
  140:	75 24                	jne    166 <wc+0xc6>
-  printf(1, "%d %d %d %s\n", l, w, c, name);
  142:	83 ec 08             	sub    $0x8,%esp
  145:	ff 75 0c             	pushl  0xc(%ebp)
  148:	ff 75 e0             	pushl  -0x20(%ebp)
@@ -176,7 +124,6 @@ main(int argc, char *argv[])
  14f:	68 ce 08 00 00       	push   $0x8ce
  154:	6a 01                	push   $0x1
  156:	e8 e5 03 00 00       	call   540 <printf>
-}
  15b:	83 c4 20             	add    $0x20,%esp
  15e:	8d 65 f4             	lea    -0xc(%ebp),%esp
  161:	5b                   	pop    %ebx
@@ -184,13 +131,11 @@ main(int argc, char *argv[])
  163:	5f                   	pop    %edi
  164:	5d                   	pop    %ebp
  165:	c3                   	ret    
-    printf(1, "wc: read error\n");
  166:	50                   	push   %eax
  167:	50                   	push   %eax
  168:	68 be 08 00 00       	push   $0x8be
  16d:	6a 01                	push   $0x1
  16f:	e8 cc 03 00 00       	call   540 <printf>
-    exit();
  174:	e8 59 02 00 00       	call   3d2 <exit>
  179:	66 90                	xchg   %ax,%ax
  17b:	66 90                	xchg   %ax,%ax
@@ -585,150 +530,121 @@ memmove(void *vdst, const void *vsrc, int n)
  3c9:	c3                   	ret    
 
 000003ca <fork>:
-  name: \
-    movl $SYS_ ## name, %eax; \
-    int $T_SYSCALL; \
-    ret
-
-SYSCALL(fork)
  3ca:	b8 01 00 00 00       	mov    $0x1,%eax
  3cf:	cd 40                	int    $0x40
  3d1:	c3                   	ret    
 
 000003d2 <exit>:
-SYSCALL(exit)
  3d2:	b8 02 00 00 00       	mov    $0x2,%eax
  3d7:	cd 40                	int    $0x40
  3d9:	c3                   	ret    
 
 000003da <wait>:
-SYSCALL(wait)
  3da:	b8 03 00 00 00       	mov    $0x3,%eax
  3df:	cd 40                	int    $0x40
  3e1:	c3                   	ret    
 
 000003e2 <pipe>:
-SYSCALL(pipe)
  3e2:	b8 04 00 00 00       	mov    $0x4,%eax
  3e7:	cd 40                	int    $0x40
  3e9:	c3                   	ret    
 
 000003ea <read>:
-SYSCALL(read)
  3ea:	b8 05 00 00 00       	mov    $0x5,%eax
  3ef:	cd 40                	int    $0x40
  3f1:	c3                   	ret    
 
 000003f2 <write>:
-SYSCALL(write)
  3f2:	b8 10 00 00 00       	mov    $0x10,%eax
  3f7:	cd 40                	int    $0x40
  3f9:	c3                   	ret    
 
 000003fa <close>:
-SYSCALL(close)
  3fa:	b8 15 00 00 00       	mov    $0x15,%eax
  3ff:	cd 40                	int    $0x40
  401:	c3                   	ret    
 
 00000402 <kill>:
-SYSCALL(kill)
  402:	b8 06 00 00 00       	mov    $0x6,%eax
  407:	cd 40                	int    $0x40
  409:	c3                   	ret    
 
 0000040a <exec>:
-SYSCALL(exec)
  40a:	b8 07 00 00 00       	mov    $0x7,%eax
  40f:	cd 40                	int    $0x40
  411:	c3                   	ret    
 
 00000412 <open>:
-SYSCALL(open)
  412:	b8 0f 00 00 00       	mov    $0xf,%eax
  417:	cd 40                	int    $0x40
  419:	c3                   	ret    
 
 0000041a <mknod>:
-SYSCALL(mknod)
  41a:	b8 11 00 00 00       	mov    $0x11,%eax
  41f:	cd 40                	int    $0x40
  421:	c3                   	ret    
 
 00000422 <unlink>:
-SYSCALL(unlink)
  422:	b8 12 00 00 00       	mov    $0x12,%eax
  427:	cd 40                	int    $0x40
  429:	c3                   	ret    
 
 0000042a <fstat>:
-SYSCALL(fstat)
  42a:	b8 08 00 00 00       	mov    $0x8,%eax
  42f:	cd 40                	int    $0x40
  431:	c3                   	ret    
 
 00000432 <link>:
-SYSCALL(link)
  432:	b8 13 00 00 00       	mov    $0x13,%eax
  437:	cd 40                	int    $0x40
  439:	c3                   	ret    
 
 0000043a <mkdir>:
-SYSCALL(mkdir)
  43a:	b8 14 00 00 00       	mov    $0x14,%eax
  43f:	cd 40                	int    $0x40
  441:	c3                   	ret    
 
 00000442 <chdir>:
-SYSCALL(chdir)
  442:	b8 09 00 00 00       	mov    $0x9,%eax
  447:	cd 40                	int    $0x40
  449:	c3                   	ret    
 
 0000044a <dup>:
-SYSCALL(dup)
  44a:	b8 0a 00 00 00       	mov    $0xa,%eax
  44f:	cd 40                	int    $0x40
  451:	c3                   	ret    
 
 00000452 <getpid>:
-SYSCALL(getpid)
  452:	b8 0b 00 00 00       	mov    $0xb,%eax
  457:	cd 40                	int    $0x40
  459:	c3                   	ret    
 
 0000045a <sbrk>:
-SYSCALL(sbrk)
  45a:	b8 0c 00 00 00       	mov    $0xc,%eax
  45f:	cd 40                	int    $0x40
  461:	c3                   	ret    
 
 00000462 <sleep>:
-SYSCALL(sleep)
  462:	b8 0d 00 00 00       	mov    $0xd,%eax
  467:	cd 40                	int    $0x40
  469:	c3                   	ret    
 
 0000046a <uptime>:
-SYSCALL(uptime)
  46a:	b8 0e 00 00 00       	mov    $0xe,%eax
  46f:	cd 40                	int    $0x40
  471:	c3                   	ret    
 
 00000472 <getreadcount>:
-SYSCALL(getreadcount)
  472:	b8 16 00 00 00       	mov    $0x16,%eax
  477:	cd 40                	int    $0x40
  479:	c3                   	ret    
 
 0000047a <gettime>:
-SYSCALL(gettime)
  47a:	b8 17 00 00 00       	mov    $0x17,%eax
  47f:	cd 40                	int    $0x40
  481:	c3                   	ret    
 
 00000482 <settickets>:
-SYSCALL(settickets)
  482:	b8 18 00 00 00       	mov    $0x18,%eax
  487:	cd 40                	int    $0x40
  489:	c3                   	ret    

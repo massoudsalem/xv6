@@ -394,6 +394,7 @@ scheduler(void)
       switchuvm(p);
       p->state = RUNNING;
 
+      p->ticks += 1;
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -404,7 +405,6 @@ scheduler(void)
             total_tickets += p->tickets;
 
       winner_found = 1;
-      p->ticks += 1;
       }
       c->proc = 0;
       break;
