@@ -1,6 +1,6 @@
 00000000 .text
-000008a8 .rodata
-000008fc .eh_frame
+000008b8 .rodata
+0000090c .eh_frame
 00000be0 .bss
 00000000 .comment
 00000000 .debug_aranges
@@ -13,19 +13,20 @@
 00000000 wc.c
 00000000 ulib.c
 00000000 printf.c
-00000490 printint
-000008e8 digits.1044
+000004a0 printint
+000008f8 digits.1047
 00000000 umalloc.c
 00000be0 freep
 00000be4 base
 00000180 strcpy
-00000530 printf
+00000540 printf
 000003a0 memmove
 0000041a mknod
 00000290 gets
 00000452 getpid
-000007b0 malloc
+000007c0 malloc
 00000462 sleep
+0000048a getpinfo
 000003e2 pipe
 000003f2 write
 0000042a fstat
@@ -40,7 +41,7 @@
 0000045a sbrk
 0000046a uptime
 00000482 settickets
-00000bc8 __bss_start
+00000bd8 __bss_start
 00000230 memset
 00000000 main
 000001b0 strcmp
@@ -48,7 +49,7 @@
 00000c00 buf
 00000472 getreadcount
 00000310 stat
-00000bc8 _edata
+00000bd8 _edata
 0000047a gettime
 00000e00 _end
 00000432 link
@@ -59,4 +60,4 @@
 00000250 strchr
 0000043a mkdir
 000003fa close
-00000720 free
+00000730 free

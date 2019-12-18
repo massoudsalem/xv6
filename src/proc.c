@@ -7,7 +7,7 @@
 #include "proc.h"
 #include "spinlock.h"
 #include "rand.h"
-
+#include "pstat.h"
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -92,6 +92,8 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->tickets = 10;
+  p->ticks = 0;
+
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -402,7 +404,7 @@ scheduler(void)
             total_tickets += p->tickets;
 
       winner_found = 1;
-
+      p->ticks += 1;
       }
       c->proc = 0;
       break;
@@ -551,6 +553,29 @@ kill(int pid)
   }
   release(&ptable.lock);
   return -1;
+}
+
+int 
+settickets(int tickets){
+  struct proc *proc = myproc();
+  proc->tickets = tickets;
+  return 0;
+}
+
+int
+getpinfo(struct pstat* ps) {
+  int i = 0;
+  struct proc *p;
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    ps->pid[i] = p->pid;
+    ps->inuse[i] = p->state == UNUSED;
+    ps->tickets[i] = p->tickets;
+    ps->ticks[i] = p->ticks;
+    i++;
+  }
+  release(&ptable.lock);
+  return 0;
 }
 
 //PAGEBREAK: 36

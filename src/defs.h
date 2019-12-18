@@ -9,6 +9,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct pstat;
 
 // bio.c
 void            binit(void);
@@ -159,7 +160,7 @@ int             fetchint(uint, int*);
 int             fetchstr(uint, char**);
 void            syscall(void);
 int             getreadcount(void);
-
+int             getpinfo(struct pstat*);
 
 // timer.c
 void            timerinit(void);
