@@ -552,7 +552,7 @@ getpinfo(struct pstat* ps) {
   acquire(&ptable.lock);
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     ps->pid[i] = p->pid;
-    ps->inuse[i] = p->state == UNUSED;
+    ps->inuse[i] = p->state != UNUSED;
     ps->tickets[i] = p->tickets;
     ps->ticks[i] = p->ticks;
     i++;
