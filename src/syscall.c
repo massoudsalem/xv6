@@ -22,6 +22,7 @@ fetchint(uint addr, int *ip)
 
   if(addr >= curproc->sz || addr+4 > curproc->sz)
     return -1;
+  
   *ip = *(int*)(addr);
   return 0;
 }

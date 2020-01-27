@@ -2358,60 +2358,97 @@ printf(int fd, const char *fmt, ...)
     206f:	90                   	nop
 
 00002070 <free>:
+static Header base;
+static Header *freep;
+
+void
+free(void *ap)
+{
     2070:	55                   	push   %ebp
+  Header *bp, *p;
+
+  bp = (Header*)ap - 1;
+  for(p = freep; !(bp > p && bp < p->s.ptr); p = p->s.ptr)
     2071:	a1 24 29 00 00       	mov    0x2924,%eax
+{
     2076:	89 e5                	mov    %esp,%ebp
     2078:	57                   	push   %edi
     2079:	56                   	push   %esi
     207a:	53                   	push   %ebx
     207b:	8b 5d 08             	mov    0x8(%ebp),%ebx
+  bp = (Header*)ap - 1;
     207e:	8d 4b f8             	lea    -0x8(%ebx),%ecx
     2081:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
+  for(p = freep; !(bp > p && bp < p->s.ptr); p = p->s.ptr)
     2088:	39 c8                	cmp    %ecx,%eax
     208a:	8b 10                	mov    (%eax),%edx
     208c:	73 32                	jae    20c0 <free+0x50>
     208e:	39 d1                	cmp    %edx,%ecx
     2090:	72 04                	jb     2096 <free+0x26>
+    if(p >= p->s.ptr && (bp > p || bp < p->s.ptr))
     2092:	39 d0                	cmp    %edx,%eax
     2094:	72 32                	jb     20c8 <free+0x58>
+      break;
+  if(bp + bp->s.size == p->s.ptr){
     2096:	8b 73 fc             	mov    -0x4(%ebx),%esi
     2099:	8d 3c f1             	lea    (%ecx,%esi,8),%edi
     209c:	39 fa                	cmp    %edi,%edx
     209e:	74 30                	je     20d0 <free+0x60>
+    bp->s.size += p->s.ptr->s.size;
+    bp->s.ptr = p->s.ptr->s.ptr;
+  } else
+    bp->s.ptr = p->s.ptr;
     20a0:	89 53 f8             	mov    %edx,-0x8(%ebx)
+  if(p + p->s.size == bp){
     20a3:	8b 50 04             	mov    0x4(%eax),%edx
     20a6:	8d 34 d0             	lea    (%eax,%edx,8),%esi
     20a9:	39 f1                	cmp    %esi,%ecx
     20ab:	74 3a                	je     20e7 <free+0x77>
+    p->s.size += bp->s.size;
+    p->s.ptr = bp->s.ptr;
+  } else
+    p->s.ptr = bp;
     20ad:	89 08                	mov    %ecx,(%eax)
+  freep = p;
     20af:	a3 24 29 00 00       	mov    %eax,0x2924
+}
     20b4:	5b                   	pop    %ebx
     20b5:	5e                   	pop    %esi
     20b6:	5f                   	pop    %edi
     20b7:	5d                   	pop    %ebp
     20b8:	c3                   	ret    
     20b9:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
+    if(p >= p->s.ptr && (bp > p || bp < p->s.ptr))
     20c0:	39 d0                	cmp    %edx,%eax
     20c2:	72 04                	jb     20c8 <free+0x58>
     20c4:	39 d1                	cmp    %edx,%ecx
     20c6:	72 ce                	jb     2096 <free+0x26>
+{
     20c8:	89 d0                	mov    %edx,%eax
     20ca:	eb bc                	jmp    2088 <free+0x18>
     20cc:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
+    bp->s.size += p->s.ptr->s.size;
     20d0:	03 72 04             	add    0x4(%edx),%esi
     20d3:	89 73 fc             	mov    %esi,-0x4(%ebx)
+    bp->s.ptr = p->s.ptr->s.ptr;
     20d6:	8b 10                	mov    (%eax),%edx
     20d8:	8b 12                	mov    (%edx),%edx
     20da:	89 53 f8             	mov    %edx,-0x8(%ebx)
+  if(p + p->s.size == bp){
     20dd:	8b 50 04             	mov    0x4(%eax),%edx
     20e0:	8d 34 d0             	lea    (%eax,%edx,8),%esi
     20e3:	39 f1                	cmp    %esi,%ecx
     20e5:	75 c6                	jne    20ad <free+0x3d>
+    p->s.size += bp->s.size;
     20e7:	03 53 fc             	add    -0x4(%ebx),%edx
+  freep = p;
     20ea:	a3 24 29 00 00       	mov    %eax,0x2924
+    p->s.size += bp->s.size;
     20ef:	89 50 04             	mov    %edx,0x4(%eax)
+    p->s.ptr = bp->s.ptr;
     20f2:	8b 53 f8             	mov    -0x8(%ebx),%edx
     20f5:	89 10                	mov    %edx,(%eax)
+}
     20f7:	5b                   	pop    %ebx
     20f8:	5e                   	pop    %esi
     20f9:	5f                   	pop    %edi
@@ -2420,69 +2457,115 @@ printf(int fd, const char *fmt, ...)
     20fc:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
 
 00002100 <malloc>:
+  return freep;
+}
+
+void*
+malloc(uint nbytes)
+{
     2100:	55                   	push   %ebp
     2101:	89 e5                	mov    %esp,%ebp
     2103:	57                   	push   %edi
     2104:	56                   	push   %esi
     2105:	53                   	push   %ebx
     2106:	83 ec 0c             	sub    $0xc,%esp
+  Header *p, *prevp;
+  uint nunits;
+
+  nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
     2109:	8b 45 08             	mov    0x8(%ebp),%eax
+  if((prevp = freep) == 0){
     210c:	8b 15 24 29 00 00    	mov    0x2924,%edx
+  nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
     2112:	8d 78 07             	lea    0x7(%eax),%edi
     2115:	c1 ef 03             	shr    $0x3,%edi
     2118:	83 c7 01             	add    $0x1,%edi
+  if((prevp = freep) == 0){
     211b:	85 d2                	test   %edx,%edx
     211d:	0f 84 9d 00 00 00    	je     21c0 <malloc+0xc0>
     2123:	8b 02                	mov    (%edx),%eax
     2125:	8b 48 04             	mov    0x4(%eax),%ecx
+    base.s.ptr = freep = prevp = &base;
+    base.s.size = 0;
+  }
+  for(p = prevp->s.ptr; ; prevp = p, p = p->s.ptr){
+    if(p->s.size >= nunits){
     2128:	39 cf                	cmp    %ecx,%edi
     212a:	76 6c                	jbe    2198 <malloc+0x98>
     212c:	81 ff 00 10 00 00    	cmp    $0x1000,%edi
     2132:	bb 00 10 00 00       	mov    $0x1000,%ebx
     2137:	0f 43 df             	cmovae %edi,%ebx
+  p = sbrk(nu * sizeof(Header));
     213a:	8d 34 dd 00 00 00 00 	lea    0x0(,%ebx,8),%esi
     2141:	eb 0e                	jmp    2151 <malloc+0x51>
     2143:	90                   	nop
     2144:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
+  for(p = prevp->s.ptr; ; prevp = p, p = p->s.ptr){
     2148:	8b 02                	mov    (%edx),%eax
+    if(p->s.size >= nunits){
     214a:	8b 48 04             	mov    0x4(%eax),%ecx
     214d:	39 f9                	cmp    %edi,%ecx
     214f:	73 47                	jae    2198 <malloc+0x98>
+        p->s.size = nunits;
+      }
+      freep = prevp;
+      return (void*)(p + 1);
+    }
+    if(p == freep)
     2151:	39 05 24 29 00 00    	cmp    %eax,0x2924
     2157:	89 c2                	mov    %eax,%edx
     2159:	75 ed                	jne    2148 <malloc+0x48>
+  p = sbrk(nu * sizeof(Header));
     215b:	83 ec 0c             	sub    $0xc,%esp
     215e:	56                   	push   %esi
     215f:	e8 36 fc ff ff       	call   1d9a <sbrk>
+  if(p == (char*)-1)
     2164:	83 c4 10             	add    $0x10,%esp
     2167:	83 f8 ff             	cmp    $0xffffffff,%eax
     216a:	74 1c                	je     2188 <malloc+0x88>
+  hp->s.size = nu;
     216c:	89 58 04             	mov    %ebx,0x4(%eax)
+  free((void*)(hp + 1));
     216f:	83 ec 0c             	sub    $0xc,%esp
     2172:	83 c0 08             	add    $0x8,%eax
     2175:	50                   	push   %eax
     2176:	e8 f5 fe ff ff       	call   2070 <free>
+  return freep;
     217b:	8b 15 24 29 00 00    	mov    0x2924,%edx
+      if((p = morecore(nunits)) == 0)
     2181:	83 c4 10             	add    $0x10,%esp
     2184:	85 d2                	test   %edx,%edx
     2186:	75 c0                	jne    2148 <malloc+0x48>
+        return 0;
+  }
+}
     2188:	8d 65 f4             	lea    -0xc(%ebp),%esp
+        return 0;
     218b:	31 c0                	xor    %eax,%eax
+}
     218d:	5b                   	pop    %ebx
     218e:	5e                   	pop    %esi
     218f:	5f                   	pop    %edi
     2190:	5d                   	pop    %ebp
     2191:	c3                   	ret    
     2192:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
+      if(p->s.size == nunits)
     2198:	39 cf                	cmp    %ecx,%edi
     219a:	74 54                	je     21f0 <malloc+0xf0>
+        p->s.size -= nunits;
     219c:	29 f9                	sub    %edi,%ecx
     219e:	89 48 04             	mov    %ecx,0x4(%eax)
+        p += p->s.size;
     21a1:	8d 04 c8             	lea    (%eax,%ecx,8),%eax
+        p->s.size = nunits;
     21a4:	89 78 04             	mov    %edi,0x4(%eax)
+      freep = prevp;
     21a7:	89 15 24 29 00 00    	mov    %edx,0x2924
+}
     21ad:	8d 65 f4             	lea    -0xc(%ebp),%esp
+      return (void*)(p + 1);
     21b0:	83 c0 08             	add    $0x8,%eax
+}
     21b3:	5b                   	pop    %ebx
     21b4:	5e                   	pop    %esi
     21b5:	5f                   	pop    %edi
@@ -2490,16 +2573,19 @@ printf(int fd, const char *fmt, ...)
     21b7:	c3                   	ret    
     21b8:	90                   	nop
     21b9:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
+    base.s.ptr = freep = prevp = &base;
     21c0:	c7 05 24 29 00 00 28 	movl   $0x2928,0x2924
     21c7:	29 00 00 
     21ca:	c7 05 28 29 00 00 28 	movl   $0x2928,0x2928
     21d1:	29 00 00 
+    base.s.size = 0;
     21d4:	b8 28 29 00 00       	mov    $0x2928,%eax
     21d9:	c7 05 2c 29 00 00 00 	movl   $0x0,0x292c
     21e0:	00 00 00 
     21e3:	e9 44 ff ff ff       	jmp    212c <malloc+0x2c>
     21e8:	90                   	nop
     21e9:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
+        prevp->s.ptr = p->s.ptr;
     21f0:	8b 08                	mov    (%eax),%ecx
     21f2:	89 0a                	mov    %ecx,(%edx)
     21f4:	eb b1                	jmp    21a7 <malloc+0xa7>

@@ -1,19 +1,24 @@
 #include "types.h"
-#include "user.h"
 #include "stat.h"
-#define NULL ((void *)0)
+#include "user.h"
 
 int
 main(int argc, char *argv[])
 {
-  //example taken from http://stackoverflow.com/questions/4007268/what-exactly-is-meant-by-de-referencing-a-null-pointer
-  int a;
-  int *pi;
-  a = 5;
-  pi = &a;
-  a = *pi;
-  pi = NULL;
+   int ppid = getpid();
 
-  printf(1, "Null Pointer value: %p\n", pi);
-  exit();
+   if (fork() == 0) {
+      uint * nullp = (uint*)0;
+      printf(1, "null dereference: ");
+      printf(1, "%x %x\n", nullp, *nullp);
+      // this process should be killed
+      printf(1, "TEST FAILED\n");
+      kill(ppid);
+      exit();
+   } else {
+      wait();
+   }
+
+   printf(1, "TEST PASSED\n");
+   exit();
 }

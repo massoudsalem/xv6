@@ -9283,6 +9283,7 @@ fetchint(uint addr, int *ip)
 80104908:	39 d0                	cmp    %edx,%eax
 8010490a:	72 14                	jb     80104920 <fetchint+0x30>
     return -1;
+  
   *ip = *(int*)(addr);
 8010490c:	8b 45 0c             	mov    0xc(%ebp),%eax
 8010490f:	8b 13                	mov    (%ebx),%edx
