@@ -5,11 +5,8 @@
 int
 main(int argc, char *argv[])
 {
-
-  char *brk = sbrk(0);
-  sbrk(PGROUNDUP((uint)brk) - (uint)brk);
   char *start = sbrk(0);
-  sbrk(PGSIZE * 1);
+  sbrk(PGSIZE);
   *start=100;
   mprotect(start, 1) ;
   int child=fork();
