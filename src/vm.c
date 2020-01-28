@@ -385,6 +385,46 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
   return 0;
 }
 
+//mprotect system call makes page table entries only readable, non-writable
+int
+mprotect(void *addr, int len){
+  struct proc *curproc = myproc();
+  if(len <= 0){
+    cprintf("\nwrong len\n");
+    return -1;
+  }
+  if((int)(((int) addr) % PGSIZE )  != 0){
+    cprintf("\nwrong addr %p\n", addr);
+    return -1;
+  }
+  pte_t *pte;
+  pte = walkpgdir(curproc->pgdir, addr, 0);
+  if (*pte)
+  {
+    int i;
+    for (i = (int) addr; i < ((int) addr + (len) *PGSIZE); i+= PGSIZE)
+    {
+      pte = walkpgdir(curproc->pgdir,(void*) i, 0);
+      if( ((*pte & PTE_U) != 0) && ((*pte & PTE_P) != 0) ){
+        *pte = *pte & (~PTE_W) ;
+        cprintf("\nPTR %p:", pte);
+      } else {
+        return -1;
+      }
+    }
+  }
+  lcr3((uint)curproc->pgdir);  
+  return 0;
+}
+
+//mprotect system call makes page table entries both readable and writable
+int
+munprotect(void *addr, int len){
+  
+  return 0;
+}
+
+
 //PAGEBREAK!
 // Blank page.
 //PAGEBREAK!

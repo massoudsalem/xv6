@@ -24,3 +24,5 @@
 #define SYS_gettime         23 
 #define SYS_settickets      24 
 #define SYS_getpinfo        25
+#define SYS_mprotect        26
+#define SYS_munprotect      27
