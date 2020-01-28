@@ -128,20 +128,20 @@ sys_getreadcount(void){
 
 int
 sys_mprotect(void){
-  void *d;
+  int d;
   int n = 0;
-  if(argptr(0, (void *)&d, sizeof(void *))<0 || argint(1, &n)<0)
+  if(argint(0, &d)<0 || argint(1, &n)<0)
     return -1;
-  return mprotect(d,n);
+  return mprotect((void *)d,n);
 
 }
 
 int
 sys_munprotect(void){
-  void *d;
+  int d;
   int n = 0;
-  if(argptr(0, (void *)&d, sizeof(void *))<0 || argint(1, &n)<0)
+  if(argint(0, &d)<0 || argint(1, &n)<0)
     return -1;
-  return munprotect(d,n);
+  return munprotect((void *)d,n);
 
 }
