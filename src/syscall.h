@@ -26,3 +26,5 @@
 #define SYS_getpinfo        25
 #define SYS_mprotect        26
 #define SYS_munprotect      27
+#define SYS_clone           28
+#define SYS_join            29

@@ -8,6 +8,7 @@
 #include "spinlock.h"
 #include "rand.h"
 #include "pstat.h"
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -293,14 +294,22 @@ wait(void)
       if(p->state == ZOMBIE){
         // Found one.
         pid = p->pid;
+
+        // Removing process from the kernal stack
         kfree(p->kstack);
         p->kstack = 0;
+
+        // Removing the process from the virtual memory
         freevm(p->pgdir);
+
+        // Removing process from the process table
         p->pid = 0;
         p->parent = 0;
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
+
+
         release(&ptable.lock);
         return pid;
       }
@@ -601,3 +610,108 @@ procdump(void)
   }
 }
 
+
+
+int clone(void(*fcn)(void*), void *arg, void*stack)
+{
+  int i, pid;
+  struct proc *np;
+  struct proc *p = myproc();
+  // Allocate process.
+  if((np = allocproc()) == 0)
+    return -1;
+
+  // Copy process data to the new thread
+  np->pgdir = p->pgdir;
+  np->sz = p->sz;
+  np->parent = p;
+  *np->tf = *p->tf;
+  void * stackArg, *stackRet;
+  stackRet = stack + PGSIZE -2* sizeof(void *);
+  *(uint*)stackRet = 0xFFFFFFF;
+
+  stackArg = stack + PGSIZE - sizeof(void *);
+  *(uint*)stackArg = (uint)arg;
+
+  np->tf->esp = (int) stack;
+  pid = np->pid;
+  np->tf->eax = 0;
+
+  // Move the stack data of the current process(thread)
+  // to the stack of the new thread
+  memmove((void*)np->tf->esp, stack, PGSIZE);
+
+  np->tf->esp += PGSIZE -2*sizeof(void*) ;
+  np->tf->ebp = np->tf->esp;
+  np->tf->eip = (int) fcn;
+
+  // Duplicate the files used by the current process(thread) to be used 
+  // also by the new thread
+  for(i = 0; i < NOFILE; i++)
+    if(p->ofile[i])
+      np->ofile[i] = filedup(p->ofile[i]);
+  // Duplicate the current directory to be used by the new thread
+  np->cwd = idup(p->cwd);
+ 
+  // Make the state of the new thread to be runnable 
+  np->state = RUNNABLE;
+
+  // Make the two threads belong to the current process
+  safestrcpy(np->name, p->name, sizeof(p->name));
+  return pid;
+}
+
+int
+join(void** stack)
+{
+  struct proc *p;           // The thread iterator
+  int havekids, pid;
+  struct proc *cp = myproc();
+  acquire(&ptable.lock);
+  for(;;){
+      // Scan through table looking for zombie children.
+      havekids = 0;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+
+      // If the current process is not my parent or share the same address space...  
+      if(p->parent != cp || p->pgdir != p->parent->pgdir)
+        continue; // You are not a thread
+       
+      havekids = 1;
+      if(p->state == ZOMBIE){
+        // Found one.
+        void *stackAddr = (void*)p->parent->tf->esp + 7 * sizeof(void *);
+        *(uint *)stackAddr = p->tf->ebp;
+        *(uint *)stackAddr += 3 * sizeof(void *) - PGSIZE;
+
+        p->tf->esp = cp->tf->esp;
+	      pid = p->pid;
+
+        // Removing thread from the kernal stack
+        kfree(p->kstack);
+        p->kstack = 0;
+
+        // Reseting thread from the process table
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+
+
+        release(&ptable.lock);
+	      return pid;
+      }
+      
+    }
+
+    // No point waiting if we don't have any children.
+    if(!havekids || cp->killed){
+      release(&ptable.lock);
+      return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(cp, &ptable.lock);  //DOC: wait-sleep
+  }
+}

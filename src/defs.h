@@ -162,6 +162,9 @@ int             fetchstr(uint, char**);
 void            syscall(void);
 int             getreadcount(void);
 int             getpinfo(struct pstat*);
+int             clone(void(*fcn)(void*), void *, void*);
+int             join(void**);
+
 
 // timer.c
 void            timerinit(void);

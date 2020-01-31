@@ -414,7 +414,7 @@ mprotect(void *addr, int len){
     }
   }
   lcr3(V2P(curproc->pgdir));  
-  
+ // munprotect(addr,len);
 return 0;
 }
 

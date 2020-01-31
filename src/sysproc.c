@@ -145,3 +145,33 @@ sys_munprotect(void){
   return munprotect((void *)d,n);
 
 }
+
+
+int
+sys_clone(void)
+{
+  void * fcn,* arg,* stack;
+  int x;
+   argint(0, &x);
+  fcn = (void*) x;
+  
+   argint(1, &x);
+  arg = (void*) x;
+  
+   argint(2, &x);
+  stack = (void*) x;
+  return clone(fcn, arg, stack);
+  
+}
+
+int
+sys_join(void)
+{
+  void **stack;
+  int stackArg;
+  stackArg = argint(0, &stackArg);
+  stack = (void**) stackArg;
+  return join(stack);
+   
+}
+

@@ -30,6 +30,8 @@ int settickets(int);
 int getpinfo(struct pstat*);
 int mprotect(void *addr, int len);
 int munprotect(void *addr, int len);
+int clone(void (*start_routine)(void*), void *, void *);
+int join(void**);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
@@ -43,3 +45,5 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+int thread_create(void (*start_routine)(void *), void * arg);
+int thread_join();
