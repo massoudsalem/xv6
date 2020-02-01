@@ -121,10 +121,6 @@ sys_getpinfo(void){
   return 0;
 }
 
-int
-sys_getreadcount(void){
-  return getreadcount();
-}
 
 int
 sys_mprotect(void){
