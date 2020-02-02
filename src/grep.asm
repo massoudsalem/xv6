@@ -453,7 +453,7 @@ int matchstar(int c, char *re, char *text)
 00001330 <strcpy>:
 #include "user.h"
 #include "x86.h"
-
+#define PGSIZE          4096
 char*
 strcpy(char *s, const char *t)
 {
@@ -839,8 +839,8 @@ memmove(void *vdst, const void *vsrc, int n)
     157a:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
 
 00001580 <thread_join>:
-  
-  return clone(start_routine, arg, stack);
+  }*/
+  return clone(start_routine, arg1, arg2, stack);
 }
 
 int thread_join()
@@ -853,6 +853,7 @@ int thread_join()
     1586:	8d 45 f4             	lea    -0xc(%ebp),%eax
     1589:	50                   	push   %eax
     158a:	e8 a2 02 00 00       	call   1831 <join>
+  //free(stackPtr);
   return x;
 }
     158f:	c9                   	leave  
@@ -1108,12 +1109,12 @@ malloc(uint nbytes)
     1730:	55                   	push   %ebp
     1731:	89 e5                	mov    %esp,%ebp
     1733:	83 ec 14             	sub    $0x14,%esp
-  stack = malloc(4096);
+  stack = malloc(PGSIZE);
     1736:	68 00 10 00 00       	push   $0x1000
     173b:	e8 f0 fe ff ff       	call   1630 <malloc>
-  return clone(start_routine, arg, stack);
-    1740:	83 c4 0c             	add    $0xc,%esp
-    1743:	50                   	push   %eax
+  return clone(start_routine, arg1, arg2, stack);
+    1740:	50                   	push   %eax
+    1741:	ff 75 10             	pushl  0x10(%ebp)
     1744:	ff 75 0c             	pushl  0xc(%ebp)
     1747:	ff 75 08             	pushl  0x8(%ebp)
     174a:	e8 da 00 00 00       	call   1829 <clone>

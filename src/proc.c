@@ -612,9 +612,8 @@ procdump(void)
 
 
 
-int clone(void(*fcn)(void*), void *arg, void*stack)
+int clone(void(*fcn)(void*,void*), void *arg1, void *arg2, void* stack)
 {
-  int i, pid;
   struct proc *np;
   struct proc *p = myproc();
   // Allocate process.
@@ -626,27 +625,36 @@ int clone(void(*fcn)(void*), void *arg, void*stack)
   np->sz = p->sz;
   np->parent = p;
   *np->tf = *p->tf;
-  void * stackArg, *stackRet;
-  stackRet = stack + PGSIZE -2* sizeof(void *);
+  
+  void * stackArg1, *stackArg2, *stackRet;
+  //pushing the fake return address to the stack of thread
+  stackRet = stack + PGSIZE -3*sizeof(void *);
   *(uint*)stackRet = 0xFFFFFFF;
 
-  stackArg = stack + PGSIZE - sizeof(void *);
-  *(uint*)stackArg = (uint)arg;
+  //pushing the first argument to the stack of thread
+  stackArg1 = stack + PGSIZE -2*sizeof(void *);
+  *(uint*)stackArg1 = (uint)arg1;
 
-  np->tf->esp = (int) stack;
-  pid = np->pid;
-  np->tf->eax = 0;
+  //pushing the second argument to the stack of thread
+  stackArg2 = stack + PGSIZE - sizeof(void *);
+  *(uint*)stackArg2 = (uint)arg2;
 
+
+  np->tf->esp = (uint) stack; //putting the address of stack in the stack pointer
+  np->tf->eax = 0;  
+  np->threadstack = stack;   //saving the address of the stack
+  
   // Move the stack data of the current process(thread)
   // to the stack of the new thread
-  memmove((void*)np->tf->esp, stack, PGSIZE);
+  // memmove((void*)np->tf->esp, stack, PGSIZE);
 
-  np->tf->esp += PGSIZE -2*sizeof(void*) ;
+  np->tf->esp += PGSIZE -3*sizeof(void*) ;
   np->tf->ebp = np->tf->esp;
-  np->tf->eip = (int) fcn;
+  np->tf->eip = (uint) fcn; //begin excuting code from this function
 
   // Duplicate the files used by the current process(thread) to be used 
   // also by the new thread
+  int i;
   for(i = 0; i < NOFILE; i++)
     if(p->ofile[i])
       np->ofile[i] = filedup(p->ofile[i]);
@@ -658,7 +666,7 @@ int clone(void(*fcn)(void*), void *arg, void*stack)
 
   // Make the two threads belong to the current process
   safestrcpy(np->name, p->name, sizeof(p->name));
-  return pid;
+  return np->pid;
 }
 
 int
@@ -680,13 +688,7 @@ join(void** stack)
       havekids = 1;
       if(p->state == ZOMBIE){
         // Found one.
-        void *stackAddr = (void*)p->parent->tf->esp + 7 * sizeof(void *);
-        *(uint *)stackAddr = p->tf->ebp;
-        *(uint *)stackAddr += 3 * sizeof(void *) - PGSIZE;
-
-        p->tf->esp = cp->tf->esp;
 	      pid = p->pid;
-
         // Removing thread from the kernal stack
         kfree(p->kstack);
         p->kstack = 0;
@@ -697,7 +699,8 @@ join(void** stack)
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
-
+        stack = p->threadstack;
+        p->threadstack = 0;
 
         release(&ptable.lock);
 	      return pid;

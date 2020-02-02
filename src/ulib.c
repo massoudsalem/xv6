@@ -3,7 +3,7 @@
 #include "fcntl.h"
 #include "user.h"
 #include "x86.h"
-
+#define PGSIZE          4096
 char*
 strcpy(char *s, const char *t)
 {
@@ -107,19 +107,22 @@ memmove(void *vdst, const void *vsrc, int n)
 
 
 
-int thread_create(void (*start_routine)(void *), void * arg)
+int thread_create(void (*start_routine)(void *, void *), void * arg1, void * arg2)
 {
   
   void * stack;
-  stack = malloc(4096);
-  
-  return clone(start_routine, arg, stack);
+  stack = malloc(PGSIZE);
+ /* if((int)stack%PGSIZE !=0){//check if the stack is page aligned 
+    return -1;
+  }*/
+  return clone(start_routine, arg1, arg2, stack);
 }
 
 int thread_join()
 {
   void * stackPtr;
   int x = join(&stackPtr);
+  //free(stackPtr);
   return x;
 }
 

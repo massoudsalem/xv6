@@ -34,7 +34,7 @@ int main(int argc, char* argv[]){
 00001030 <strcpy>:
 #include "user.h"
 #include "x86.h"
-
+#define PGSIZE          4096
 char*
 strcpy(char *s, const char *t)
 {
@@ -420,8 +420,8 @@ memmove(void *vdst, const void *vsrc, int n)
     127a:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
 
 00001280 <thread_join>:
-  
-  return clone(start_routine, arg, stack);
+  }*/
+  return clone(start_routine, arg1, arg2, stack);
 }
 
 int thread_join()
@@ -434,6 +434,7 @@ int thread_join()
     1286:	8d 45 f4             	lea    -0xc(%ebp),%eax
     1289:	50                   	push   %eax
     128a:	e8 a2 02 00 00       	call   1531 <join>
+  //free(stackPtr);
   return x;
 }
     128f:	c9                   	leave  
@@ -689,12 +690,12 @@ malloc(uint nbytes)
     1430:	55                   	push   %ebp
     1431:	89 e5                	mov    %esp,%ebp
     1433:	83 ec 14             	sub    $0x14,%esp
-  stack = malloc(4096);
+  stack = malloc(PGSIZE);
     1436:	68 00 10 00 00       	push   $0x1000
     143b:	e8 f0 fe ff ff       	call   1330 <malloc>
-  return clone(start_routine, arg, stack);
-    1440:	83 c4 0c             	add    $0xc,%esp
-    1443:	50                   	push   %eax
+  return clone(start_routine, arg1, arg2, stack);
+    1440:	50                   	push   %eax
+    1441:	ff 75 10             	pushl  0x10(%ebp)
     1444:	ff 75 0c             	pushl  0xc(%ebp)
     1447:	ff 75 08             	pushl  0x8(%ebp)
     144a:	e8 da 00 00 00       	call   1529 <clone>

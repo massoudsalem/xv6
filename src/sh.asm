@@ -1442,7 +1442,7 @@ nulterminate(struct cmd *cmd)
 00001ac0 <strcpy>:
 #include "user.h"
 #include "x86.h"
-
+#define PGSIZE          4096
 char*
 strcpy(char *s, const char *t)
 {
@@ -1828,8 +1828,8 @@ memmove(void *vdst, const void *vsrc, int n)
     1d0a:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
 
 00001d10 <thread_join>:
-  
-  return clone(start_routine, arg, stack);
+  }*/
+  return clone(start_routine, arg1, arg2, stack);
 }
 
 int thread_join()
@@ -1842,6 +1842,7 @@ int thread_join()
     1d16:	8d 45 f4             	lea    -0xc(%ebp),%eax
     1d19:	50                   	push   %eax
     1d1a:	e8 a2 02 00 00       	call   1fc1 <join>
+  //free(stackPtr);
   return x;
 }
     1d1f:	c9                   	leave  
@@ -2097,12 +2098,12 @@ malloc(uint nbytes)
     1ec0:	55                   	push   %ebp
     1ec1:	89 e5                	mov    %esp,%ebp
     1ec3:	83 ec 14             	sub    $0x14,%esp
-  stack = malloc(4096);
+  stack = malloc(PGSIZE);
     1ec6:	68 00 10 00 00       	push   $0x1000
     1ecb:	e8 f0 fe ff ff       	call   1dc0 <malloc>
-  return clone(start_routine, arg, stack);
-    1ed0:	83 c4 0c             	add    $0xc,%esp
-    1ed3:	50                   	push   %eax
+  return clone(start_routine, arg1, arg2, stack);
+    1ed0:	50                   	push   %eax
+    1ed1:	ff 75 10             	pushl  0x10(%ebp)
     1ed4:	ff 75 0c             	pushl  0xc(%ebp)
     1ed7:	ff 75 08             	pushl  0x8(%ebp)
     1eda:	e8 da 00 00 00       	call   1fb9 <clone>

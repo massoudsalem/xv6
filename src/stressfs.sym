@@ -16,7 +16,7 @@
 00001c00 base
 00000000 printf.c
 00001650 printint
-0000190c digits.1065
+0000190c digits.1069
 00000000 umalloc.c
 00001140 strcpy
 000016f0 printf
