@@ -21,7 +21,7 @@ Calling `mprotect()` should change the protection bits of the page range startin
 > *  Mohammad Massoud : [@massoudsalem]( https://github.com/massoudsalem )
 > * Mohammad Ashraf : [@elhedeq]( https://github.com/elhedeq )
 > * Omar Ali : [@OmarAli3]( https://github.com/OmarAli3 )
-> * Ahmed Hafez : [@Ahmed-Hafez3]( https://github.com/Ahmed-Hafez3 )
+> * Ahmed Hafez : [@Ahmed-Hafez]( https://github.com/Ahmed-Hafez )
 > * Shimaa Hamdy : [@shimaahamdy]( https://github.com/shimaahamdy )
 > * Hadeer Mohammad : [@HadeerOsman]( https://github.com/HadeerOsman )
 > * Khalid Mahmoud : [@Khalid-MahmouD]( https://github.com/Khalid-MahmouD )
